@@ -19,10 +19,10 @@
       <div class="panel">
         <div class="section-title"><h2>Serienscanner</h2><span class="pill">KOSTENLOS</span></div>
         <p class="hint">Karte ruhig in den Rahmen legen. Die App fotografiert, liest und sucht automatisch. Jeden Treffer bestätigst du einmal.</p>
-        <button id="autoBtn" class="primary">Automatisches Scannen starten</button><div class="scan-progress"><div id="scanStep"></div></div>
+        <button id="autoBtn" class="primary">Automatisches Scannen starten</button><div class="scan-progress"><div id="scanStep"></div></div><div id="batchBar" class="batch-bar"><span><strong id="batchCount">0</strong> Karten vorgemerkt</span><button id="finishBatchBtn" class="text-btn">Scan beenden</button></div>
         <details><summary>Manuelle Suche, falls nötig</summary>
         <div class="grid">
-          <label>Sprache<select id="language"><option value="de">Deutsch</option><option value="en">Englisch</option><option value="fr">Französisch</option><option value="it">Italienisch</option><option value="es">Spanisch</option><option value="pt">Portugiesisch</option><option value="ja">Japanisch</option></select></label>
+          <label>Sprache<select id="language"><option value="auto">Automatisch (DE/EN)</option><option value="de">Deutsch</option><option value="en">Englisch</option><option value="fr">Französisch</option><option value="it">Italienisch</option><option value="es">Spanisch</option><option value="pt">Portugiesisch</option><option value="ja">Japanisch</option></select></label>
           <label>Kartennummer<input id="number" placeholder="z. B. 25/102"></label>
         </div>
         <label>Name<input id="name" placeholder="z. B. Pikachu" autocomplete="off"></label>
@@ -32,12 +32,14 @@
     </section>
     <section id="collection" class="screen">
       <div class="section-title"><div><span class="eyebrow">LOKAL GESPEICHERT</span><h2>Sammlung</h2></div><button id="clearBtn" class="text-btn">Leeren</button></div>
+      <div class="collection-picker"><select id="collectionSelect"></select><button id="newCollectionBtn" class="secondary">Neue Sammlung</button></div>
       <div class="toolbar"><input id="filter" placeholder="Sammlung durchsuchen"><select id="conditionFilter"><option value="">Alle Zustände</option><option>MT</option><option>NM</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></div>
       <div id="inventory" class="inventory"></div>
       <div class="exports"><button id="csvBtn" class="secondary">Excel / CSV</button><button id="cmBtn" class="secondary">Cardmarket CSV</button></div>
     </section>
   </main>
   <dialog id="addDialog"><form method="dialog"><button class="close" value="cancel">×</button><div id="chosenCard"></div><div class="grid"><label>Zustand<select id="condition"><option>NM</option><option>MT</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></label><label>Anzahl<input id="quantity" type="number" min="1" value="1"></label></div><div class="grid"><label>Variante<select id="variant"><option>Normal</option><option>Holo</option><option>Reverse Holo</option></select></label><label>Eigener Preis €<input id="price" type="number" min="0" step="0.01" placeholder="optional"></label></div><button id="saveBtn" value="default" class="primary">Zur Sammlung</button></form></dialog>
-  <dialog id="confirmDialog"><form method="dialog"><div id="autoCandidate"></div><div class="confidence"><span>Erkennungssicherheit</span><strong id="confidence">–</strong></div><div class="confirm-actions"><button id="rejectBtn" value="cancel" class="secondary">Nicht übernehmen</button><button id="acceptBtn" value="default" class="primary">Übernehmen</button></div><button id="alternativesBtn" type="button" class="text-btn wide">Anderen Treffer auswählen</button></form></dialog>
+  <dialog id="confirmDialog"><form method="dialog"><div id="autoCandidate"></div><div class="confidence"><span>Erkennungssicherheit</span><strong id="confidence">–</strong></div><div class="confirm-actions"><button id="rejectBtn" value="cancel" class="secondary">Nicht übernehmen</button><button id="acceptBtn" value="default" class="primary">Karte vormerken</button></div><button id="alternativesBtn" type="button" class="text-btn wide">Anderen Treffer auswählen</button></form></dialog>
+  <dialog id="batchDialog"><form method="dialog"><button class="close" value="cancel">×</button><span class="eyebrow">SCAN ABGESCHLOSSEN</span><h2>Erkannte Karten</h2><div id="batchList" class="inventory"></div><label>Zielsammlung<select id="batchCollection"></select></label><div class="confirm-actions"><button id="discardBatchBtn" value="cancel" class="secondary">Verwerfen</button><button id="commitBatchBtn" value="default" class="primary">Zur Sammlung hinzufügen</button></div></form></dialog>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="app.js"></script>
 </body></html>
