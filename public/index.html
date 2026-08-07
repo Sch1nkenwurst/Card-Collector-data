@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#15171a"><title>PokéScan Inventar</title>
-  <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="scanner.css"><link rel="stylesheet" href="identifier.css">
+  <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="scanner.css"><link rel="stylesheet" href="identifier.css"><link rel="stylesheet" href="market.css">
 </head>
 <body>
   <header><div><span class="eyebrow">DEINE SAMMLUNG</span><h1>PokéScan</h1></div><div class="count"><strong id="totalCount">0</strong><span>Karten</span></div></header>
   <main>
-    <nav><button class="tab active" data-screen="scan">Scannen</button><button class="tab" data-screen="collection">Sammlung</button></nav>
+    <nav><button class="tab active" data-screen="scan">Scanner</button><button class="tab" data-screen="collection">Kollektion</button><button class="tab" data-screen="market">Marktchancen</button></nav>
     <section id="scan" class="screen active">
       <div class="camera-card">
         <video id="video" playsinline muted></video><canvas id="canvas"></canvas>
@@ -28,7 +28,15 @@
         <label>Name<input id="name" placeholder="z. B. Pikachu" autocomplete="off"></label>
         <button id="searchBtn" class="secondary">Treffer suchen</button></details><div id="status" role="status"></div>
         <div id="results" class="results"></div>
+        <details class="quality-panel"><summary>Erkennungsstatistik</summary><div id="qualityStats" class="stats-grid"></div><div class="confirm-actions"><button id="qualityExportBtn" class="secondary" type="button">Diagnosedaten laden</button><button id="qualityClearBtn" class="secondary" type="button">Statistik leeren</button></div></details>
       </div>
+    </section>
+    <section id="market" class="screen">
+      <div class="section-title"><div><span class="eyebrow">KOSTENLOSER DATEN-SCREENER</span><h2>Marktchancen</h2></div><span class="pill">BETA</span></div>
+      <div class="notice"><strong>Keine Kaufgarantie.</strong> Der Chancen-Score vergleicht verfügbare Preise und deine lokal gesammelten Preisstände. Zustand, Sprache, Gebühren und tatsächliche Verkäuflichkeit können stark abweichen.</div>
+      <div class="panel market-search"><label>Kartenname<input id="marketQuery" placeholder="z. B. Pikachu"></label><div class="grid"><label>Sprache<select id="marketLanguage"><option value="de">Deutsch</option><option value="en">Englisch</option></select></label><label>Mindestrabatt<select id="marketDiscount"><option value="0">Alle</option><option value="10">ab 10 %</option><option value="20">ab 20 %</option><option value="30">ab 30 %</option></select></label></div><button id="marketSearchBtn" class="primary">Karten analysieren</button><div id="marketStatus" class="hint"></div><div id="marketResults" class="results"></div></div>
+      <div class="section-title market-heading"><div><span class="eyebrow">LOKAL BEOBACHTET</span><h2>Meine Beobachtungsliste</h2></div><button id="refreshMarketBtn" class="text-btn">Preise aktualisieren</button></div>
+      <div id="marketWatchlist" class="market-list"></div>
     </section>
     <section id="collection" class="screen">
       <div class="section-title"><div><span class="eyebrow">LOKAL GESPEICHERT</span><h2>Sammlung</h2></div><button id="clearBtn" class="text-btn">Leeren</button></div>
