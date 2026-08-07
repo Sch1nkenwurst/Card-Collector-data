@@ -103,20 +103,39 @@ async function recognizeCurrentCard(){
   state.recognizing=true;state.stableFrames=0;setLive('busy','Erkennung läuft …');progress(45);captureCardCrop();
   try{
     if(!window.Tesseract)throw new Error('Texterkennung wurde nicht geladen');
-    setStatus('Text auf der Karte wird kostenlos auf deinem Handy gelesen …');
+    setStatus('Setcode, Sprache und Kartennummer werden am unteren Rand gelesen …');
     const selected=$('#language').value, language=ocrLanguages[selected]||'eng';
-    const result=await Tesseract.recognize(state.photo,language,{logger:m=>{if(m.status==='recognizing text')progress(45+Math.round(m.progress*30))}});
-    const text=result.data.text.replace(/\r/g,'');const parsed=parseCardText(text);progress(78);
-    setStatus(parsed.number?`Kartennummer ${parsed.number} erkannt – Datenbankabgleich …`:'Name wird mit der Kartendatenbank abgeglichen …');
-    const cards=await findOcrCandidates(parsed,selected);progress(100);
+    const identifierImage=prepareIdentifierImage();
+    const result=await Tesseract.recognize(identifierImage,language,{logger:m=>{if(m.status==='recognizing text')progress(45+Math.round(m.progress*27))}});
+    let parsed=parseCardIdentifier(result.data.text);progress(74);
+    if(!parsed.number){setStatus('Kennung nicht eindeutig – gesamte Karte wird zusätzlich gelesen …');const fallback=await Tesseract.recognize(state.photo,language,{logger:m=>{if(m.status==='recognizing text')progress(74+Math.round(m.progress*12))}});parsed={...parseCardText(fallback.data.text),identifierText:result.data.text}}
+    state.identifier=parsed;
+    setStatus(parsed.setCode?`${parsed.setCode} ${parsed.languageCode||''} ${parsed.number} erkannt – exakter Abgleich …`:parsed.number?`Kartennummer ${parsed.number} erkannt – Datenbankabgleich …`:'Name wird mit der Kartendatenbank abgeglichen …');
+    let cards=await findIdentifierCandidates(parsed,selected);
+    if(cards.length&&!cards[0]._exactIdentifier&&parsed.number){setStatus('Setcode nicht eindeutig – Kartenname wird zur Gegenprüfung gelesen …');const nameResult=await Tesseract.recognize(prepareNameImage(),language,{logger:m=>{if(m.status==='recognizing text')progress(86+Math.round(m.progress*12))}}),nameData=parseCardText(nameResult.data.text);parsed.name=nameData.name;parsed.text+=` ${nameData.text}`;cards=await findOcrCandidates(parsed,state.detectedLang)}progress(100);
     if(!cards.length)throw new Error('Kein passender Kartentreffer gefunden');
-    state.autoCandidates=cards;showAutoCandidate(cards[0],Math.round(Math.min(99,(result.data.confidence||45)*.65+(parsed.number?30:10))));
+    state.autoCandidates=cards;const exact=Boolean(parsed.setCode&&cards[0]._exactIdentifier);showAutoCandidate(cards[0],exact?Math.max(92,Math.round(result.data.confidence||70)):Math.round(Math.min(89,(result.data.confidence||45)*.62+(parsed.number?24:8))));
   }catch(e){setStatus(`${e.message}. Karte anders ausrichten oder unten die manuelle Suche öffnen.`);setLive('on','Noch einmal versuchen');progress(0);setTimeout(()=>{state.recognizing=false;state.lastSample=null},1800);return}
   state.recognizing=false;
 }
 function captureCardCrop(){
   const v=$('#video'),c=$('#canvas'),targetRatio=2.5/3.5;let w=v.videoWidth*.68,h=v.videoHeight*.82;if(w/h>targetRatio)w=h*targetRatio;else h=w/targetRatio;
   const x=(v.videoWidth-w)/2,y=(v.videoHeight-h)/2;c.width=900;c.height=Math.round(900/targetRatio);c.getContext('2d').drawImage(v,x,y,w,h,0,0,c.width,c.height);state.photo=c.toDataURL('image/jpeg',.86);
+}
+function prepareIdentifierImage(){
+  const source=$('#canvas'),cropY=Math.floor(source.height*.74),cropH=source.height-cropY,out=document.createElement('canvas');out.width=1600;out.height=540;const ctx=out.getContext('2d',{willReadFrequently:true});
+  for(let row=0;row<3;row++)ctx.drawImage(source,0,cropY,source.width,cropH,0,row*180,out.width,180);
+  const image=ctx.getImageData(0,0,out.width,out.height),d=image.data;
+  for(let i=0;i<d.length;i+=4){const row=Math.floor((i/4)/out.width/180),g=d[i]*.3+d[i+1]*.59+d[i+2]*.11;let value=row===0?Math.max(0,Math.min(255,(g-128)*1.65+128)):row===1?(g>150?255:0):(g>150?0:255);d[i]=d[i+1]=d[i+2]=value}
+  ctx.putImageData(image,0,0);state.identifierPhoto=out.toDataURL('image/png');return state.identifierPhoto;
+}
+function prepareNameImage(){const source=$('#canvas'),out=document.createElement('canvas');out.width=1400;out.height=300;const ctx=out.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0,source.width,source.height*.24,0,0,out.width,out.height);const image=ctx.getImageData(0,0,out.width,out.height),d=image.data;for(let i=0;i<d.length;i+=4){const g=d[i]*.3+d[i+1]*.59+d[i+2]*.11,v=Math.max(0,Math.min(255,(g-128)*1.55+128));d[i]=d[i+1]=d[i+2]=v}ctx.putImageData(image,0,0);return out.toDataURL('image/png')}
+function parseCardIdentifier(text){
+  const normalized=(text||'').toUpperCase().replace(/[|]/g,'I').replace(/[–—_]/g,'-').replace(/[^A-Z0-9À-Ü★◆●/\-\s]/g,' ').replace(/\s+/g,' ').trim(),languageMap={DE:'de',EN:'en',FR:'fr',IT:'it',ES:'es',PT:'pt',JP:'ja',JPN:'ja'};let best=null;
+  const patterns=[/\b([A-Z][A-Z0-9]{1,4})\s*[- ]\s*(DE|EN|FR|IT|ES|PT|JP|JPN)\s*[- ]?\s*(\d{1,3})(?:\s*\/\s*(\d{2,3}))?\b/g,/\b([A-Z][A-Z0-9]{1,4})\s+(\d{1,3})(?:\s*\/\s*(\d{2,3}))?\b/g];
+  for(const pattern of patterns){for(const match of normalized.matchAll(pattern)){const hasLang=languageMap[match[2]],candidate={setCode:match[1],languageCode:hasLang?match[2]:'',language:hasLang||'',number:hasLang?match[3]:match[2],total:hasLang?(match[4]||''):(match[3]||''),text:normalized,identifierText:text};if(!['BASIC','TRAINER','ENERGY','POKEMON'].includes(candidate.setCode)){best=candidate;break}}if(best)break}
+  if(!best){const ratio=normalized.match(/\b(\d{1,3})\s*\/\s*(\d{2,3})\b/);best={setCode:'',languageCode:'',language:'',number:ratio?.[1]||'',total:ratio?.[2]||'',text:normalized,identifierText:text}}
+  best.rarity=normalized.includes('★')?'★':normalized.includes('◆')?'◆':normalized.includes('●')?'●':'';return best;
 }
 function parseCardText(text){
   const clean=text.replace(/[|©®]/g,' ').replace(/\s+/g,' ').trim();const number=(clean.match(/\b([A-Z]{0,4}\s?\d{1,3})\s*[\/／]\s*\d{2,3}\b/i)||[])[1]?.replace(/\s/g,'')||'';
@@ -129,9 +148,21 @@ async function findOcrCandidates(parsed,lang){
   if(!Array.isArray(list))return[];const query=(parsed.name||'').toLowerCase();list.sort((a,b)=>nameScore(b.name,query)-nameScore(a.name,query));
   return await Promise.all(list.slice(0,6).map(async c=>{try{return await(await fetch(`https://api.tcgdex.net/v2/${lang}/cards/${c.id}`)).json()}catch{return c}}));
 }
+async function findIdentifierCandidates(parsed,selectedLang){
+  let lang=parsed.language||(selectedLang==='auto'?inferLanguage(parsed.text):selectedLang);state.detectedLang=lang;
+  if(parsed.setCode&&parsed.number){try{const set=await resolveSetByPrintedCode(parsed.setCode,parsed.number,lang);if(set){const detail=set.cards?set:await(await fetch(`https://api.tcgdex.net/v2/${lang}/sets/${set.id}`)).json();const found=(detail.cards||[]).filter(c=>String(c.localId).replace(/^0+/,'')===String(parsed.number).replace(/^0+/,''));if(found.length){return await Promise.all(found.slice(0,6).map(async c=>{const full=await(await fetch(`https://api.tcgdex.net/v2/${lang}/cards/${c.id}`)).json();full._exactIdentifier=true;return full}))}}}catch{}
+  }
+  return findOcrCandidates(parsed,lang);
+}
+async function resolveSetByPrintedCode(setCode,number,lang){
+  const code=setCode.toLowerCase(),variants=new Set([code,code.replace(/1$/,'i'),code.replace(/0/g,'o')]),cache=JSON.parse(localStorage.getItem('pokescan.setCodes')||'{}');if(cache[code])return{id:cache[code]};
+  const matchesCode=s=>[s.id,s.abbreviation,s.code].filter(Boolean).some(v=>variants.has(String(v).toLowerCase()));const setsRes=await fetch(`https://api.tcgdex.net/v2/${lang}/sets`),sets=setsRes.ok?await setsRes.json():[];let match=sets.find(matchesCode);
+  if(!match){const cardsRes=await fetch(`https://api.tcgdex.net/v2/${lang}/cards?localId=${encodeURIComponent(number)}`),cards=cardsRes.ok?await cardsRes.json():[],setIds=[...new Set(cards.slice(0,45).map(c=>c.set?.id||String(c.id).replace(new RegExp(`-${String(c.localId||number)}$`),'')).filter(Boolean))];const details=await Promise.all(setIds.map(async id=>{try{return await(await fetch(`https://api.tcgdex.net/v2/${lang}/sets/${id}`)).json()}catch{return null}}));match=details.find(s=>s&&matchesCode(s))}
+  if(match){cache[code]=match.id;localStorage.setItem('pokescan.setCodes',JSON.stringify(cache))}return match;
+}
 function inferLanguage(text){text=(text||'').toLowerCase();const de=['schwäche','widerstand','rückzug','entwicklung','basis','kampfunfähig'];const en=['weakness','resistance','retreat','evolves','basic','damage'];return de.filter(w=>text.includes(w)).length>=en.filter(w=>text.includes(w)).length?'de':'en'}
 function nameScore(name,q){if(!q)return 0;name=(name||'').toLowerCase();if(q.includes(name)||name.includes(q))return 10;return [...name].filter(ch=>q.includes(ch)).length/Math.max(name.length,1)}
-function showAutoCandidate(card,confidence){state.autoChosen=card;const lang=$('#language').value==='auto'?state.detectedLang:$('#language').value;$('#autoCandidate').innerHTML=`<div class="auto-card"><img src="${imageUrl(card)}" alt=""><span class="eyebrow">ERKANNTER TREFFER</span><h2>${esc(card.name)}</h2><p>${esc(setName(card))} · ${esc(card.localId||'–')} · ${langNames[lang]}</p></div>`;$('#confidence').textContent=confidence+' %';$('#confirmDialog').showModal();setLive('busy','Bitte bestätigen')}
+function showAutoCandidate(card,confidence){state.autoChosen=card;const lang=$('#language').value==='auto'?state.detectedLang:$('#language').value,id=state.identifier||{};$('#autoCandidate').innerHTML=`<div class="auto-card"><img src="${imageUrl(card)}" alt=""><span class="eyebrow">ERKANNTER TREFFER</span><h2>${esc(card.name)}</h2><p>${esc(setName(card))} · ${esc(card.localId||'–')} · ${langNames[lang]}</p></div>`;$('#identifierDetails').innerHTML=[id.setCode,id.languageCode,id.number,id.rarity].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');$('#confidence').textContent=confidence+' %';$('#confirmDialog').showModal();setLive('busy','Bitte bestätigen')}
 $('#acceptBtn').onclick=()=>{const card=state.autoChosen,selected=$('#language').value,lang=selected==='auto'?state.detectedLang:selected;if(!card)return;const existing=state.batch.find(c=>c.tcgdexId===card.id&&c.language===lang&&c.condition==='NM'&&c.variant==='Normal');if(existing)existing.quantity+=1;else state.batch.unshift({uid:crypto.randomUUID(),tcgdexId:card.id,name:card.name,set:setName(card),setId:card.set?.id||'',number:card.localId||'',language:lang,condition:'NM',variant:'Normal',quantity:1,price:marketPrice(card),cardmarketId:card.variants?.find?.(v=>v.thirdParty?.cardmarket)?.thirdParty?.cardmarket||card.thirdParty?.cardmarket||'',image:imageUrl(card),photo:state.photo,addedAt:new Date().toISOString()});updateBatchBar();resumeAfterDecision(`${card.name} vorgemerkt. Karte entfernen und nächste einlegen.`)};
 $('#rejectBtn').onclick=()=>resumeAfterDecision('Nicht übernommen. Karte entfernen und nächste einlegen.');
 $('#alternativesBtn').onclick=()=>{$('#confirmDialog').close();renderResults(state.autoCandidates,$('#language').value);document.querySelector('details').open=true;resumeAfterDecision('Bitte unten einen anderen Treffer auswählen.')};

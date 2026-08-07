@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#15171a"><title>PokéScan Inventar</title>
-  <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="scanner.css">
+  <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="scanner.css"><link rel="stylesheet" href="identifier.css">
 </head>
 <body>
   <header><div><span class="eyebrow">DEINE SAMMLUNG</span><h1>PokéScan</h1></div><div class="count"><strong id="totalCount">0</strong><span>Karten</span></div></header>
@@ -39,7 +39,7 @@
     </section>
   </main>
   <dialog id="addDialog"><form method="dialog"><button class="close" value="cancel">×</button><div id="chosenCard"></div><div class="grid"><label>Zustand<select id="condition"><option>NM</option><option>MT</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></label><label>Anzahl<input id="quantity" type="number" min="1" value="1"></label></div><div class="grid"><label>Variante<select id="variant"><option>Normal</option><option>Holo</option><option>Reverse Holo</option></select></label><label>Eigener Preis €<input id="price" type="number" min="0" step="0.01" placeholder="optional"></label></div><button id="saveBtn" value="default" class="primary">Zur Sammlung</button></form></dialog>
-  <dialog id="confirmDialog"><form method="dialog"><div id="autoCandidate"></div><div class="confidence"><span>Erkennungssicherheit</span><strong id="confidence">–</strong></div><div class="confirm-actions"><button id="rejectBtn" value="cancel" class="secondary">Nicht übernehmen</button><button id="acceptBtn" value="default" class="primary">Karte vormerken</button></div><button id="alternativesBtn" type="button" class="text-btn wide">Anderen Treffer auswählen</button></form></dialog>
+  <dialog id="confirmDialog"><form method="dialog"><div id="autoCandidate"></div><div id="identifierDetails" class="identifier-details"></div><div class="confidence"><span>Erkennungssicherheit</span><strong id="confidence">–</strong></div><div class="confirm-actions"><button id="rejectBtn" value="cancel" class="secondary">Nicht übernehmen</button><button id="acceptBtn" value="default" class="primary">Karte vormerken</button></div><button id="alternativesBtn" type="button" class="text-btn wide">Anderen Treffer auswählen</button></form></dialog>
   <dialog id="batchDialog"><form method="dialog"><button class="close" value="cancel">×</button><span class="eyebrow">SCAN ABGESCHLOSSEN</span><h2>Erkannte Karten</h2><div id="batchList" class="inventory"></div><label>Zielsammlung<select id="batchCollection"></select></label><div class="confirm-actions"><button id="discardBatchBtn" value="cancel" class="secondary">Verwerfen</button><button id="commitBatchBtn" value="default" class="primary">Zur Sammlung hinzufügen</button></div></form></dialog>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="app.js"></script>
 </body></html>
