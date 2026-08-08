@@ -31,3 +31,27 @@ drop trigger if exists transactions_set_mode on public.transactions;
 create trigger transactions_set_mode before insert on public.transactions for each row execute function public.set_card_collector_mode();
 create index if not exists inventory_items_mode_idx on public.inventory_items(user_id,is_test);
 create index if not exists transactions_mode_idx on public.transactions(user_id,is_test);
+
+create table if not exists public.set_mappings(
+  id uuid primary key default gen_random_uuid(),
+  printed_code text not null,
+  language text not null default 'all',
+  tcgdex_set_id text not null,
+  set_name text not null default '',
+  source text not null default 'automatic',
+  updated_at timestamptz not null default now(),
+  unique(printed_code,language)
+);
+alter table public.set_mappings enable row level security;
+drop policy if exists "Authenticated users read set mappings" on public.set_mappings;
+create policy "Authenticated users read set mappings" on public.set_mappings for select to authenticated using(true);
+drop policy if exists "Authenticated users create set mappings" on public.set_mappings;
+create policy "Authenticated users create set mappings" on public.set_mappings for insert to authenticated with check(true);
+drop policy if exists "Authenticated users update set mappings" on public.set_mappings;
+create policy "Authenticated users update set mappings" on public.set_mappings for update to authenticated using(true) with check(true);
+grant select,insert,update on public.set_mappings to authenticated;
+create index if not exists set_mappings_code_idx on public.set_mappings(printed_code,language);
+insert into public.set_mappings(printed_code,language,tcgdex_set_id,set_name,source) values
+  ('OBF','all','sv03','Obsidianflammen','verified'),
+  ('CRI','all','me04','Wachsendes Chaos','verified')
+on conflict(printed_code,language) do update set tcgdex_set_id=excluded.tcgdex_set_id,set_name=excluded.set_name,source=excluded.source,updated_at=now();
