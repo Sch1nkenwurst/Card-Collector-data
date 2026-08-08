@@ -6,3 +6,9 @@ alter table public.inventory_items enable row level security;alter table public.
 drop policy if exists "Users manage own inventory" on public.inventory_items;create policy "Users manage own inventory" on public.inventory_items for all using(auth.uid()=user_id) with check(auth.uid()=user_id);
 drop policy if exists "Users manage own transactions" on public.transactions;create policy "Users manage own transactions" on public.transactions for all using(auth.uid()=user_id) with check(auth.uid()=user_id);
 grant usage on schema public to anon,authenticated;grant select,insert,update,delete on public.inventory_items to authenticated;grant select,insert,update,delete on public.transactions to authenticated;
+alter table public.inventory_items add column if not exists selling_price numeric(12,2);
+alter table public.inventory_items add column if not exists cardmarket_product_id bigint;
+alter table public.inventory_items add column if not exists source text not null default 'manual';
+alter table public.transactions add column if not exists import_batch text;
+create index if not exists inventory_cardmarket_product_idx on public.inventory_items(user_id,cardmarket_product_id);
+create index if not exists transactions_import_batch_idx on public.transactions(user_id,import_batch);
