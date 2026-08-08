@@ -46,6 +46,88 @@ create table if not exists public.set_mappings(
 alter table public.set_mappings enable row level security;
 drop policy if exists "Authenticated users read set mappings" on public.set_mappings;
 create policy "Authenticated users read set mappings" on public.set_mappings for select to authenticated using(true);
+
+-- Atomare Stornierungen: Bestand und Finanzbuchung werden innerhalb derselben
+-- Datenbanktransaktion geändert. Bei einem Fehler wird alles zurückgerollt.
+create or replace function public.void_purchase_transaction(p_transaction_id uuid, p_reason text)
+returns void
+language plpgsql
+security invoker
+set search_path=public
+as $$
+declare
+  v_tx public.transactions%rowtype;
+  v_stock integer;
+begin
+  select * into v_tx
+  from public.transactions
+  where id=p_transaction_id and user_id=auth.uid() and kind='purchase'
+  for update;
+  if not found then raise exception 'Einkaufsbuchung wurde nicht gefunden.'; end if;
+  if v_tx.voided_at is not null then raise exception 'Diese Einkaufsbuchung ist bereits storniert.'; end if;
+  if v_tx.inventory_item_id is null then raise exception 'Die Einkaufsbuchung ist keiner Bestandskarte zugeordnet.'; end if;
+
+  select quantity into v_stock
+  from public.inventory_items
+  where id=v_tx.inventory_item_id and user_id=auth.uid() and is_test=v_tx.is_test
+  for update;
+  if not found or v_stock < v_tx.quantity then
+    raise exception 'Die eingekaufte Menge ist nicht mehr vollständig im Bestand. Zuerst abhängige Vorgänge stornieren.';
+  end if;
+
+  update public.inventory_items
+  set quantity=quantity-v_tx.quantity, updated_at=now()
+  where id=v_tx.inventory_item_id and user_id=auth.uid();
+  update public.transactions
+  set voided_at=now(), void_reason=coalesce(nullif(trim(p_reason),''),'Fehlbuchung')
+  where id=v_tx.id and user_id=auth.uid();
+end;
+$$;
+
+create or replace function public.void_sale_transaction(p_transaction_id uuid, p_reason text)
+returns void
+language plpgsql
+security invoker
+set search_path=public
+as $$
+declare
+  v_tx public.transactions%rowtype;
+  v_line record;
+begin
+  select * into v_tx
+  from public.transactions
+  where id=p_transaction_id and user_id=auth.uid() and kind='sale'
+  for update;
+  if not found then raise exception 'Verkaufsbuchung wurde nicht gefunden.'; end if;
+  if v_tx.voided_at is not null then raise exception 'Dieser Verkauf ist bereits storniert.'; end if;
+
+  for v_line in
+    select inventory_item_id, sum(quantity)::integer as quantity
+    from public.transactions
+    where user_id=auth.uid() and kind='sale' and voided_at is null
+      and is_test=v_tx.is_test
+      and (case when v_tx.transaction_group is null then id=v_tx.id else transaction_group=v_tx.transaction_group end)
+    group by inventory_item_id
+  loop
+    if v_line.inventory_item_id is null then raise exception 'Eine Verkaufsposition besitzt keine Bestandszuordnung.'; end if;
+    perform 1 from public.inventory_items
+      where id=v_line.inventory_item_id and user_id=auth.uid() and is_test=v_tx.is_test
+      for update;
+    if not found then raise exception 'Eine verkaufte Bestandsposition wurde inzwischen gelöscht.'; end if;
+    update public.inventory_items
+      set quantity=quantity+v_line.quantity, updated_at=now()
+      where id=v_line.inventory_item_id and user_id=auth.uid();
+  end loop;
+
+  update public.transactions
+  set voided_at=now(), void_reason=coalesce(nullif(trim(p_reason),''),'Fehlbuchung')
+  where user_id=auth.uid() and kind='sale' and voided_at is null and is_test=v_tx.is_test
+    and (case when v_tx.transaction_group is null then id=v_tx.id else transaction_group=v_tx.transaction_group end);
+end;
+$$;
+
+grant execute on function public.void_purchase_transaction(uuid,text) to authenticated;
+grant execute on function public.void_sale_transaction(uuid,text) to authenticated;
 drop policy if exists "Authenticated users create set mappings" on public.set_mappings;
 create policy "Authenticated users create set mappings" on public.set_mappings for insert to authenticated with check(true);
 drop policy if exists "Authenticated users update set mappings" on public.set_mappings;
