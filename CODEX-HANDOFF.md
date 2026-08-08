@@ -59,7 +59,7 @@ Bestand und Finanzen dürfen getrennte Fachbereiche sein, müssen aber durch ato
 
 ## Hinweise für eine neue Codex-Aufgabe
 
-1. Diese Datei und `PROJEKTSTATUS.md` vollständig lesen.
+1. Diese Datei, `PROJEKTSTATUS.md` und `PROJEKT-CHRONIK.md` vollständig lesen.
 2. Prüfen, dass der lokale Checkout auf `development` steht und aktuell ist.
 3. Keine Veröffentlichung nach `main`, GitHub oder Cloudflare ohne ausdrückliche Freigabe.
 4. Änderungen zunächst lokal testen und anschließend auf Desktop- und Mobilbreite prüfen.
