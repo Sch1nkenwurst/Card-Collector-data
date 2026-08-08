@@ -12,3 +12,8 @@ alter table public.inventory_items add column if not exists source text not null
 alter table public.transactions add column if not exists import_batch text;
 create index if not exists inventory_cardmarket_product_idx on public.inventory_items(user_id,cardmarket_product_id);
 create index if not exists transactions_import_batch_idx on public.transactions(user_id,import_batch);
+alter table public.transactions add column if not exists external_reference text;
+alter table public.transactions add column if not exists transaction_group uuid;
+alter table public.transactions drop constraint if exists transactions_kind_check;
+alter table public.transactions add constraint transactions_kind_check check(kind in('purchase','sale','expense','adjustment'));
+create index if not exists transactions_group_idx on public.transactions(user_id,transaction_group);
