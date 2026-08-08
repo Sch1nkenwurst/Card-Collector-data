@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#15171a"><title>PokéScan Inventar</title>
-  <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="scanner.css"><link rel="stylesheet" href="identifier.css"><link rel="stylesheet" href="market.css">
+  <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="scanner.css"><link rel="stylesheet" href="identifier.css"><link rel="stylesheet" href="market.css"><link rel="stylesheet" href="advanced.css">
 </head>
 <body>
   <header><div><span class="eyebrow">DEINE SAMMLUNG</span><h1>PokéScan</h1></div><div class="count"><strong id="totalCount">0</strong><span>Karten</span></div></header>
   <main>
-    <nav><button class="tab active" data-screen="scan">Scanner</button><button class="tab" data-screen="collection">Kollektion</button><button class="tab" data-screen="market">Marktchancen</button></nav>
+    <nav><button class="tab active" data-screen="scan">Scanner</button><button class="tab" data-screen="collection">Kollektionen</button><button class="tab" data-screen="market">Marktchancen</button><button class="tab" data-screen="settings">Daten</button></nav>
     <section id="scan" class="screen active">
       <div class="camera-card">
         <video id="video" playsinline muted></video><canvas id="canvas"></canvas>
@@ -19,7 +19,7 @@
       <div class="panel">
         <div class="section-title"><h2>Serienscanner</h2><span class="pill">KOSTENLOS</span></div>
         <p class="hint">Karte ruhig in den Rahmen legen. Die App fotografiert, liest und sucht automatisch. Jeden Treffer bestätigst du einmal.</p>
-        <button id="autoBtn" class="primary">Automatisches Scannen starten</button><div class="scan-progress"><div id="scanStep"></div></div><div id="batchBar" class="batch-bar"><span><strong id="batchCount">0</strong> Karten vorgemerkt</span><button id="finishBatchBtn" class="text-btn">Scan beenden</button></div>
+        <div id="cameraChecks" class="camera-checks"><span data-check="light">Licht</span><span data-check="sharp">Schärfe</span><span data-check="glare">Reflexion</span><span data-check="stable">Ruhe</span></div><button id="autoBtn" class="primary">Automatisches Scannen starten</button><div class="scan-progress"><div id="scanStep"></div></div><div id="batchBar" class="batch-bar"><span><strong id="batchCount">0</strong> Karten vorgemerkt</span><button id="finishBatchBtn" class="text-btn">Scan beenden</button></div>
         <details><summary>Manuelle Suche, falls nötig</summary>
         <div class="grid">
           <label>Sprache<select id="language"><option value="auto">Automatisch (DE/EN)</option><option value="de">Deutsch</option><option value="en">Englisch</option><option value="fr">Französisch</option><option value="it">Italienisch</option><option value="es">Spanisch</option><option value="pt">Portugiesisch</option><option value="ja">Japanisch</option></select></label>
@@ -38,9 +38,16 @@
       <div class="section-title market-heading"><div><span class="eyebrow">LOKAL BEOBACHTET</span><h2>Meine Beobachtungsliste</h2></div><button id="refreshMarketBtn" class="text-btn">Preise aktualisieren</button></div>
       <div id="marketWatchlist" class="market-list"></div>
     </section>
+    <section id="settings" class="screen">
+      <div class="section-title"><div><span class="eyebrow">SICHERUNG UND TRANSPARENZ</span><h2>Daten & Einstellungen</h2></div></div>
+      <div class="settings-card"><h3>Backups</h3><p class="hint">Sammlungen, Marktbeobachtungen, Preisstände und Scannerstatistik sichern oder wiederherstellen.</p><div class="settings-actions"><button id="backupBtn" class="primary">Vollständiges Backup</button><button id="restoreBtn" class="secondary">Backup importieren</button><button id="collectionCsvImportBtn" class="secondary">Sammlungs-CSV importieren</button></div><input id="restoreFile" type="file" accept="application/json" hidden><input id="csvImportFile" type="file" accept=".csv,text/csv" hidden></div>
+      <div class="settings-card"><h3>Scanner-Diagnose</h3><label class="toggle-row"><span>Diagnosedaten speichern<small>Kennung, Ergebnis, Sicherheit und Bildqualität</small></span><input id="diagnosticsEnabled" type="checkbox"></label><label class="toggle-row"><span>Auch Kartenfotos lokal speichern<small>Benötigt mehr Speicher; Fotos verlassen das Gerät nicht</small></span><input id="diagnosticPhotos" type="checkbox"></label><div id="diagnosticStorage" class="hint"></div><button id="diagnosticsBundleBtn" class="secondary">Diagnosepaket herunterladen</button></div>
+      <div class="settings-card"><h3>Marktalarme</h3><div class="grid"><label>Mindest-Score<input id="alertScore" type="number" min="0" max="100" value="65"></label><label>Mindestabschlag %<input id="alertDiscount" type="number" min="0" max="100" value="20"></label></div><p class="hint">Alarme erscheinen beim manuellen Aktualisieren der Preise. Die statische Website läuft nicht zuverlässig im Hintergrund.</p></div>
+      <div class="settings-card danger-zone"><h3>Lokale Daten</h3><div id="localDataSummary" class="stats-grid"></div><button id="deleteAllDataBtn" class="secondary">Alle lokalen App-Daten löschen</button></div>
+    </section>
     <section id="collection" class="screen">
       <div class="section-title"><div><span class="eyebrow">LOKAL GESPEICHERT</span><h2>Sammlung</h2></div><button id="clearBtn" class="text-btn">Leeren</button></div>
-      <div class="collection-picker"><select id="collectionSelect"></select><button id="newCollectionBtn" class="secondary">Neue Sammlung</button></div>
+      <div class="collection-picker"><select id="collectionSelect"></select><button id="newCollectionBtn" class="secondary">Neu</button><button id="renameCollectionBtn" class="secondary">Umbenennen</button><button id="deleteCollectionBtn" class="secondary">Löschen</button></div>
       <div class="toolbar"><input id="filter" placeholder="Sammlung durchsuchen"><select id="conditionFilter"><option value="">Alle Zustände</option><option>MT</option><option>NM</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></div>
       <div id="inventory" class="inventory"></div>
       <div class="exports"><button id="csvBtn" class="secondary">Excel / CSV</button><button id="cmBtn" class="secondary">Cardmarket CSV</button></div>
@@ -50,5 +57,7 @@
   <dialog id="confirmDialog"><form method="dialog"><div id="autoCandidate"></div><div id="identifierDetails" class="identifier-details"></div><div class="confidence"><span>Erkennungssicherheit</span><strong id="confidence">–</strong></div><div class="confirm-actions"><button id="rejectBtn" value="cancel" class="secondary">Nicht übernehmen</button><button id="acceptBtn" value="default" class="primary">Karte vormerken</button></div><button id="alternativesBtn" type="button" class="text-btn wide">Anderen Treffer auswählen</button></form></dialog>
   <dialog id="batchDialog"><form method="dialog"><button class="close" value="cancel">×</button><span class="eyebrow">SCAN ABGESCHLOSSEN</span><h2>Erkannte Karten</h2><div id="batchList" class="inventory"></div><label>Zielsammlung<select id="batchCollection"></select></label><div class="confirm-actions"><button id="discardBatchBtn" value="cancel" class="secondary">Verwerfen</button><button id="commitBatchBtn" value="default" class="primary">Zur Sammlung hinzufügen</button></div></form></dialog>
   <dialog id="scoreDialog"><form method="dialog"><button class="close" value="cancel">×</button><span class="eyebrow">MARKTCHANCEN-ERKLÄRUNG</span><div id="scoreExplanation"></div><button value="default" class="primary">Verstanden</button></form></dialog>
+  <dialog id="cardEditDialog"><form method="dialog"><button class="close" value="cancel">×</button><span class="eyebrow">KARTENEINTRAG</span><h2 id="editCardTitle">Karte bearbeiten</h2><input id="editCardUid" type="hidden"><div class="grid"><label>Zustand<select id="editCondition"><option>MT</option><option>NM</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></label><label>Anzahl<input id="editQuantity" type="number" min="1"></label></div><div class="grid"><label>Kaufpreis €<input id="editPurchasePrice" type="number" min="0" step="0.01"></label><label>Kaufdatum<input id="editPurchaseDate" type="date"></label></div><label>Lagerort<input id="editLocation" placeholder="z. B. Ordner 2, Seite 14, Fach 6"></label><label>Notizen<textarea id="editNotes" rows="3"></textarea></label><button id="saveCardEditBtn" value="default" class="primary">Änderungen speichern</button></form></dialog>
+  <dialog id="alertsDialog"><form method="dialog"><button class="close" value="cancel">×</button><span class="eyebrow">PREISALARM</span><h2>Auffällige Karten</h2><div id="alertsList" class="market-list"></div><button value="default" class="primary">Schließen</button></form></dialog>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="app.js"></script>
 </body></html>
