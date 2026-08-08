@@ -17,3 +17,8 @@ alter table public.transactions add column if not exists transaction_group uuid;
 alter table public.transactions drop constraint if exists transactions_kind_check;
 alter table public.transactions add constraint transactions_kind_check check(kind in('purchase','sale','expense','adjustment'));
 create index if not exists transactions_group_idx on public.transactions(user_id,transaction_group);
+alter table public.transactions add column if not exists voided_at timestamptz;
+alter table public.transactions add column if not exists void_reason text;
+alter table public.transactions add column if not exists shipping_cost numeric(12,2) not null default 0;
+alter table public.transactions add column if not exists shipping_charged numeric(12,2) not null default 0;
+create index if not exists transactions_active_import_idx on public.transactions(user_id,import_batch,voided_at);
