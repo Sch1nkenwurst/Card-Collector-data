@@ -1,7 +1,23 @@
 {
-  "name": "poke-scan-inventory-mvp",
-  "version": "0.1.0",
+  "name": "schinkenwurst-kartenlager",
+  "version": "0.11.0",
   "private": true,
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" }
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "start": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "test": "vitest run",
+    "check": "vitest run && vite build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.112.2"
+  },
+  "devDependencies": {
+    "vite": "8.2.1",
+    "vitest": "4.1.10"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
 }

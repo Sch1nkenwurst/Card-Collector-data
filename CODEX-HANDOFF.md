@@ -24,17 +24,31 @@ Persönliche, mobil- und desktopfähige Warenwirtschaft für Pokémon-Karten. Sp
 ## Aktueller lokaler Stand
 
 - Sichtbare Marke: **Schinkenwurst · Kartenlager**
-- Lokale Version: `0.10.0`
+- Lokale Version: `0.11.0`
 - Responsive Gestaltung für Desktop und Mobil, geprüft bei 390 px Breite
 - Testmodus und Live-Modus sind in Supabase getrennt
 - Live-Bestand und Live-Vorgänge wurden am 8. August 2026 auf null zurückgesetzt
 - Cardmarket-CSV-Import und Kennungen wie `OBF 207`
 - Mengen-/Set-Erfassung und Mehrkartenverkauf
+- Kartenbilder aus TCGdex werden bei Set-Erfassung und Cardmarket-Import gespeichert und im Bestand angezeigt
+- Mehrfachauswahl direkt im Bestand öffnet den atomaren Mehrkartenverkauf
+- Verkaufsauswahl zeigt den Bestand ohne Suchzwang, macht fehlertolerante Vorschläge und prüft Mengenfehler
+- TCGdex/Cardmarket-Marktpreise können aktualisiert werden; Finanzen zeigen daraus einen unverbindlichen hypothetischen Bestandswert
 - Gebühren und Versandkosten getrennt
 - CSV-, Cardmarket- und JSON-Export
 - Atomare Supabase-Funktionen für Einkaufs- und Verkaufsstorno installiert:
   - `void_purchase_transaction`
   - `void_sale_transaction`
+- Atomare Supabase-Funktion für Mehrkartenverkäufe installiert:
+  - `record_multi_sale`
+- Atomare Supabase-Funktionen für Einzelbuchung, Cardmarket-Import und Korrektur:
+  - `record_transaction`
+  - `record_cardmarket_purchase`
+  - `correct_inventory_purchase`
+- Unveränderbares Bestandsbewegungsbuch `stock_movements`
+- Audit-Protokoll `audit_events`
+- Reproduzierbarer Vite-Build, fest versionierte Supabase-Bibliothek und Tests
+- Cloudflare-Sicherheitsheader und Konfiguration über Umgebungsvariablen
 
 ## Wichtige Architekturentscheidung
 
@@ -55,7 +69,7 @@ Bestand und Finanzen dürfen getrennte Fachbereiche sein, müssen aber durch ato
 
 - Windows: `LOKAL-STARTEN.cmd`
 - Adresse: `http://localhost:4173`
-- Mac-Startdatei muss noch ergänzt werden.
+- Mac: `LOKAL-STARTEN.command`
 
 ## Hinweise für eine neue Codex-Aufgabe
 

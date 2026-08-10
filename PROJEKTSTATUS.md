@@ -1,11 +1,19 @@
-# Card Collector – lokaler Projektstand
+# Schinkenwurst Kartenlager – lokaler Projektstand 0.11.0
 
 ## Bereits vorhanden
 
 - Anmeldung und getrennte Live-/Testdaten über Supabase
 - Bestand, Einzel- und Set-Schnellerfassung
 - Cardmarket-Einkaufsimport mit Kartenkennung wie `OBF 207`
+- TCGdex-Kartenbilder im Bestand; neue Set- und Cardmarket-Erfassungen speichern Karten-ID und Bildadresse
+- Mehrfachauswahl und Verkauf direkt aus dem Bestand
+- Verkaufssuche mit scrollbarer Gesamtliste, fehlertoleranten Vorschlägen und Mengenprüfung
+- Aktualisierbare Cardmarket-Trendpreise über TCGdex und hypothetischer Bestandswert in den Finanzen
 - Mehrpositionsverkauf mit Suche, Gebühren, Porto und externer Referenz
+- Einzelbuchungen, Cardmarket-Importe und Bestandskorrekturen laufen atomar
+- Bestandsbewegungsbuch und Audit-Protokoll sind in Supabase vorhanden
+- Vite-Build mit fest versionierter Supabase-Bibliothek und automatischen Tests
+- Cloudflare-Sicherheitsheader und nicht eingecheckte Umgebungsvariablen
 - Vorgangsliste, Stornierung, Dashboard und Monatsauswertung
 - CSV-, Cardmarket- und vollständiger JSON-Export
 - Cloudflare Pages ist mit GitHub verbunden; lokale Änderungen veröffentlichen nichts
@@ -19,6 +27,8 @@
 - Die Stornierungen laufen atomar in Supabase: vollständig oder gar nicht.
 - Der Vorgangs-CSV enthält nun Porto, Versandkosten, Referenzen, Gruppen und Stornostatus.
 - Die JSON-Sicherung enthält Format, Version, Modus, Konto, Bestand und Vorgänge.
+- Bestehende Testkarten wurden um TCGdex-Karten-ID und Bildadresse ergänzt; Live-Bestand blieb unverändert leer.
+- Mehrkartenverkäufe werden über `record_multi_sale` vollständig atomar gebucht.
 
 ## Kritische nächste Ausbaustufe
 

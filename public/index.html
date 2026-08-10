@@ -1,30 +1,651 @@
 <!doctype html>
 <html lang="de">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#10251d">
-  <title>Schinkenwurst – Kartenlager</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <section id="authView" class="auth-view"><div class="auth-card"><div class="brand-mark">CC</div><p class="eyebrow">DEINE KARTEN-WARENWIRTSCHAFT</p><h1>Card Collector</h1><p class="muted">Bestand, Einkäufe, Verkäufe und Gewinne – synchron auf Handy und Rechner.</p><form id="loginForm"><label>E-Mail-Adresse<input id="loginEmail" type="email" autocomplete="email" required></label><label>Passwort<input id="loginPassword" type="password" autocomplete="current-password" minlength="8" required></label><button class="primary" type="submit">Anmelden</button></form><form id="signupForm" hidden><label>E-Mail-Adresse<input id="signupEmail" type="email" autocomplete="email" required></label><label>Passwort<input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required></label><button class="primary" type="submit">Konto erstellen</button></form><button id="authModeBtn" class="link-button" type="button">Noch kein Zugang? Konto erstellen</button><div id="authStatus" class="status" role="status"></div></div></section>
-  <div id="appView" hidden>
-    <header class="app-header"><div><p class="eyebrow">CARD COLLECTOR</p><h1 id="pageTitle">Übersicht</h1><span id="modeBanner" class="mode-banner" hidden>TESTMODUS – keine Live-Daten</span></div></header>
-    <main>
-      <section id="dashboard" class="screen active"><div class="welcome"><div><p class="eyebrow">GESCHÄFTSÜBERBLICK</p><h2>Deine Karten auf einen Blick</h2></div><span id="syncBadge" class="sync-badge">Synchronisiert</span></div><div class="kpi-grid"><article class="kpi"><span>Karten im Bestand</span><strong id="kpiCards">0</strong><small id="kpiPositions">0 Positionen</small></article><article class="kpi"><span>Bestandswert</span><strong id="kpiValue">0,00 €</strong><small>auf Basis deiner Werte</small></article><article class="kpi accent"><span>Umsatz</span><strong id="kpiRevenue">0,00 €</strong><small id="kpiSales">0 Verkäufe</small></article><article class="kpi"><span>Gewinn</span><strong id="kpiProfit">0,00 €</strong><small>nach Kosten</small></article></div><div class="two-col"><article class="panel"><div class="panel-head"><h3>Letzte Vorgänge</h3><button class="link-button" data-go="transactions">Alle anzeigen</button></div><div id="recentActivity" class="activity-list"></div></article><article class="panel"><h3>Schnellstart</h3><div class="action-grid"><button data-action="purchase">Einkauf erfassen</button><button data-action="sale">Verkauf erfassen</button><button data-action="expense">Kosten erfassen</button><button data-go="inventory">Bestand öffnen</button></div></article></div></section>
-      <section id="inventory" class="screen"><div class="section-head"><div><p class="eyebrow">WARENBESTAND</p><h2>Meine Karten</h2></div><div class="head-actions"><button id="cardmarketImportOpen" class="secondary">Cardmarket-Datei</button><button id="bulkOpenBtn" class="primary">Viele Karten erfassen</button><button class="secondary" data-action="card">Einzelkarte</button></div></div><div class="toolbar"><input id="inventorySearch" type="search" placeholder="Name, Set, Nummer oder Lagerort"><select id="inventoryGame"><option value="">Alle Spiele</option><option>Pokémon</option><option>One Piece</option><option>Magic</option></select></div><div id="inventoryList" class="card-list"></div></section>
-      <section id="transactions" class="screen"><div class="section-head"><div><p class="eyebrow">EIN- UND VERKÄUFE</p><h2>Vorgänge</h2></div><button class="primary" data-action="sale">Verkauf erfassen</button></div><div class="segmented"><button class="active" data-kind-filter="">Alle</button><button data-kind-filter="purchase">Einkäufe</button><button data-kind-filter="sale">Verkäufe</button><button data-kind-filter="expense">Kosten</button></div><div id="transactionList" class="transaction-list"></div></section>
-      <section id="reports" class="screen"><div class="section-head"><div><p class="eyebrow">AUSWERTUNG</p><h2>Finanzen</h2></div></div><div class="report-card"><label>Zeitraum<select id="reportPeriod"><option value="all">Gesamter Zeitraum</option><option value="year">Dieses Jahr</option><option value="month">Dieser Monat</option></select></label><div id="reportSummary" class="report-summary"></div></div><article class="panel"><h3>Monatsübersicht</h3><div id="monthlyReport" class="monthly-report"></div></article></section>
-      <section id="data" class="screen"><div class="section-head"><div><p class="eyebrow">DATEN & SICHERUNG</p><h2>Export und Konto</h2></div></div><article class="panel stack test-panel"><h3>Testmodus</h3><p class="muted">Testdaten werden getrennt von den späteren echten Beständen und Vorgängen gespeichert.</p><label class="toggle-row"><span>Testmodus verwenden<small>Beim Umschalten lädt die Seite einmal neu.</small></span><input id="testModeToggle" type="checkbox"></label><button id="resetTestDataBtn" class="danger" type="button">Alle Testdaten löschen</button><div id="resetTestStatus" class="status"></div></article><article class="panel stack"><h3>Daten herunterladen</h3><p class="muted">Erstelle jederzeit eine vollständige Sicherung, die Excel öffnen kann.</p><button id="inventoryExportBtn" class="secondary">Bestand als CSV</button><button id="transactionsExportBtn" class="secondary">Vorgänge als CSV</button><button id="fullExportBtn" class="secondary">Komplettsicherung als JSON</button></article><article class="panel stack"><h3>Cardmarket</h3><p class="muted">Der Export bereitet deine Bestandsdaten für die weitere Bearbeitung vor. Vor dem Upload bitte immer prüfen.</p><button id="cardmarketExportBtn" class="secondary">Cardmarket-Vorlage herunterladen</button></article><article class="panel stack"><h3>Konto</h3><div id="accountEmail" class="account-email"></div><div class="app-version">Installierte Version: 0.9.8</div><button id="logoutBtn" class="danger">Abmelden</button></article></section>
-    </main>
-    <nav class="bottom-nav" aria-label="Hauptnavigation"><button class="active" data-screen="dashboard"><span>⌂</span>Übersicht</button><button data-screen="inventory"><span>▣</span>Bestand</button><button data-screen="transactions"><span>⇄</span>Vorgänge</button><button data-screen="reports"><span>⌁</span>Finanzen</button><button data-screen="data"><span>•••</span>Daten</button></nav>
-  </div>
-  <dialog id="entryDialog"><form id="entryForm"><div class="dialog-head"><div><p id="dialogEyebrow" class="eyebrow">NEUER EINTRAG</p><h2 id="dialogTitle">Karte hinzufügen</h2></div><button id="dialogClose" class="icon-button" type="button">×</button></div><input id="entryId" type="hidden"><input id="entryType" type="hidden"><div id="cardFields"><div class="field-grid"><label>Spiel<select id="cardGame"><option>Pokémon</option><option>One Piece</option><option>Magic</option></select></label><label>Sprache<select id="cardLanguage"><option value="de">Deutsch</option><option value="en">Englisch</option><option value="ja">Japanisch</option><option value="fr">Französisch</option><option value="it">Italienisch</option><option value="es">Spanisch</option></select></label></div><label>Kartenname<input id="cardName" required placeholder="z. B. Glurak"></label><div class="field-grid"><label>Set<input id="cardSet" placeholder="z. B. 151"></label><label>Kartennummer<input id="cardNumber" placeholder="z. B. 006/165"></label></div><div class="field-grid"><label>Zustand<select id="cardCondition"><option>NM</option><option>MT</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></label><label>Variante<select id="cardVariant"><option>Normal</option><option>Holo</option><option>Reverse Holo</option><option>First Edition</option></select></label></div><div class="field-grid"><label>Anzahl<input id="cardQuantity" type="number" min="1" value="1"></label><label>Lagerort<input id="cardLocation" placeholder="Kiste A / Fach 3"></label></div><div class="field-grid"><label>Einkauf je Karte €<input id="cardPurchasePrice" type="number" min="0" step="0.01"></label><label>Marktwert je Karte €<input id="cardMarketValue" type="number" min="0" step="0.01"></label></div><label>Notizen<textarea id="cardNotes" rows="2"></textarea></label></div><div id="transactionFields" hidden><label>Bezeichnung<input id="txDescription" placeholder="z. B. Verkauf Glurak" required></label><label>Karte (optional)<select id="txInventoryId"><option value="">Keine Bestandskarte</option></select></label><div class="field-grid"><label>Datum<input id="txDate" type="date" required></label><label>Anzahl<input id="txQuantity" type="number" min="1" value="1"></label></div><div class="field-grid"><label id="amountLabel">Betrag €<input id="txAmount" type="number" min="0" step="0.01" required></label><label>Gebühren/Versand €<input id="txFees" type="number" min="0" step="0.01" value="0"></label></div><label>Plattform<select id="txPlatform"><option>Cardmarket</option><option>Privat</option><option>eBay</option><option>Messe/Börse</option><option>Sonstiges</option></select></label><label>Notizen<textarea id="txNotes" rows="2"></textarea></label></div><div id="formStatus" class="status" role="status"></div><button id="entrySubmit" class="primary" type="submit">Speichern</button></form></dialog>
-  <dialog id="bulkDialog" class="wide-dialog"><form id="bulkForm"><div class="dialog-head"><div><p class="eyebrow">SCHNELLERFASSUNG</p><h2>Komplette Erweiterung erfassen</h2></div><button id="bulkCloseBtn" class="icon-button" type="button">×</button></div><div class="bulk-setup"><label>Spiel<select id="bulkGame"><option>Pokémon</option><option disabled>One Piece – folgt</option><option disabled>Magic – folgt</option></select></label><label>Sprache<select id="bulkLanguage"><option value="de">Deutsch</option><option value="en">Englisch</option><option value="fr">Französisch</option><option value="it">Italienisch</option></select></label><label>Erweiterung<select id="bulkSet"><option value="">Erweiterungen werden geladen …</option></select></label><label>Gemeinsamer Lagerort<input id="bulkLocation" placeholder="z. B. Kiste 4"></label></div><div class="bulk-defaults"><label>Standard-Zustand<select id="bulkCondition"><option>NM</option><option>MT</option><option>EX</option><option>GD</option><option>LP</option><option>PL</option><option>PO</option></select></label><label>Einkauf je Karte €<input id="bulkPurchaseDefault" type="number" min="0" step="0.01"></label><label>Verkauf je Karte €<input id="bulkSellDefault" type="number" min="0" step="0.01"></label><button id="applyBulkDefaults" class="secondary" type="button">Auf ausgefüllte Zeilen anwenden</button></div><div class="bulk-search"><input id="bulkSearch" type="search" placeholder="Kartenliste filtern"><span id="bulkSelectedCount">0 Karten ausgewählt</span></div><div id="bulkStatus" class="status"></div><div id="bulkCardList" class="bulk-table"></div><button id="bulkSaveBtn" class="primary" type="submit">Ausgewählte Karten übernehmen</button></form></dialog>
-  <dialog id="cardmarketImportDialog" class="wide-dialog"><form id="cardmarketImportForm"><div class="dialog-head"><div><p class="eyebrow">CARDMARKET-EINKAUF</p><h2>Versanddatei importieren</h2></div><button id="cardmarketImportClose" class="icon-button" type="button">×</button></div><div id="importDrop" class="import-drop"><strong>Cardmarket-CSV auswählen</strong><span>ArticlesFromShipment…csv</span><input id="cardmarketFile" type="file" accept=".csv,text/csv"></div><div class="field-grid"><label>Gemeinsamer Lagerort<input id="importLocation" placeholder="z. B. Neu eingetroffen"></label><label>Kaufdatum<input id="importDate" type="date"></label></div><div id="importStatus" class="status"></div><div id="importPreview" class="bulk-table"></div><button id="importSaveBtn" class="primary" type="submit" disabled>Import bestätigen</button></form></dialog>
-  <dialog id="correctionDialog"><form id="correctionForm"><div class="dialog-head"><div><p class="eyebrow">BESTANDSKORREKTUR</p><h2 id="correctionTitle">Fehlbuchung korrigieren</h2></div><button id="correctionClose" class="icon-button" type="button">×</button></div><p class="muted">Diese Korrektur wird im Verlauf dokumentiert, zählt aber nicht als Verkauf.</p><label>Auszubuchende Anzahl<input id="correctionQuantity" type="number" min="1" value="1" required></label><label>Grund<select id="correctionReason"><option>Fehlbuchung</option><option>Doppelt erfasst</option><option>Bestandszählung</option><option>Beschädigt oder verloren</option><option>Sonstige Korrektur</option></select></label><label>Referenz (optional)<input id="correctionReference" placeholder="z. B. interne Notiznummer"></label><label>Notiz<textarea id="correctionNotes" rows="2"></textarea></label><div id="correctionStatus" class="status"></div><button class="danger" type="submit">Bestand korrigieren</button></form></dialog>
-  <dialog id="multiSaleDialog" class="wide-dialog"><form id="multiSaleForm"><div class="dialog-head"><div><p class="eyebrow">MEHRKARTEN-VERKAUF</p><h2>Verkauf erfassen</h2></div><button id="multiSaleClose" class="icon-button" type="button">×</button></div><div class="bulk-setup sale-setup"><label>Datum<input id="multiSaleDate" type="date" required></label><label>Plattform<select id="multiSalePlatform"><option>Cardmarket</option><option>Privat</option><option>eBay</option><option>Messe/Börse</option><option>Sonstiges</option></select></label><label>Bestell-/Versandnummer<input id="multiSaleReference" placeholder="z. B. 1292284685"></label><label>Plattformgebühr €<input id="multiSaleFees" type="number" min="0" step="0.01" value="0"></label></div><div class="sale-costs"><label>Versand vom Käufer erhalten €<input id="multiSaleShippingCharged" type="number" min="0" step="0.01" value="0"></label><label>Tatsächliche Versandkosten €<input id="multiSaleShippingCost" type="number" min="0" step="0.01" value="0"></label><div class="shipping-suggestion"><span>Versandvorschlag</span><strong id="shippingSuggestion">Noch keine Karten ausgewählt</strong><small>Bitte mit der Cardmarket-Bestellung abgleichen.</small></div><label class="toggle-row"><span>Gebühr automatisch vorschlagen<small>Cardmarket: derzeit als 5%-Vorschlag</small></span><input id="autoFee" type="checkbox" checked></label></div><div class="bulk-search"><input id="multiSaleSearch" type="search" placeholder="Bestand durchsuchen"><strong id="multiSaleTotal">0,00 €</strong></div><div id="multiSaleStatus" class="status"></div><div id="multiSaleList" class="bulk-table"></div><label>Gemeinsame Notiz<textarea id="multiSaleNotes" rows="2"></textarea></label><button id="multiSaleSubmit" class="primary" type="submit">Verkauf buchen</button></form></dialog>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js"></script>
-</body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#10251d" />
+    <title>Schinkenwurst – Kartenlager</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <section id="authView" class="auth-view">
+      <div class="auth-card">
+        <div class="brand-mark">CC</div>
+        <p class="eyebrow">DEINE KARTEN-WARENWIRTSCHAFT</p>
+        <h1>Dein Kartenlager</h1>
+        <p class="muted">
+          Bestand, Einkäufe, Verkäufe und Auswertungen – synchron auf Handy und
+          Rechner.
+        </p>
+        <form id="loginForm">
+          <label
+            >E-Mail-Adresse<input
+              id="loginEmail"
+              type="email"
+              autocomplete="email"
+              required /></label
+          ><label
+            >Passwort<input
+              id="loginPassword"
+              type="password"
+              autocomplete="current-password"
+              minlength="8"
+              required /></label
+          ><button class="primary" type="submit">Anmelden</button>
+        </form>
+        <form id="signupForm" hidden>
+          <label
+            >E-Mail-Adresse<input
+              id="signupEmail"
+              type="email"
+              autocomplete="email"
+              required /></label
+          ><label
+            >Passwort<input
+              id="signupPassword"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              required /></label
+          ><button class="primary" type="submit">Konto erstellen</button>
+        </form>
+        <button id="authModeBtn" class="link-button" type="button">
+          Noch kein Zugang? Konto erstellen
+        </button>
+        <div id="authStatus" class="status" role="status"></div>
+      </div>
+    </section>
+    <div id="appView" hidden>
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">CARD COLLECTOR</p>
+          <h1 id="pageTitle">Übersicht</h1>
+          <span id="modeBanner" class="mode-banner" hidden
+            >TESTMODUS – keine Live-Daten</span
+          >
+        </div>
+      </header>
+      <main>
+        <section id="dashboard" class="screen active">
+          <div class="welcome">
+            <div>
+              <p class="eyebrow">GESCHÄFTSÜBERBLICK</p>
+              <h2>Deine Karten auf einen Blick</h2>
+            </div>
+            <span id="syncBadge" class="sync-badge">Synchronisiert</span>
+          </div>
+          <div class="kpi-grid">
+            <article class="kpi">
+              <span>Karten im Bestand</span><strong id="kpiCards">0</strong
+              ><small id="kpiPositions">0 Positionen</small>
+            </article>
+            <article class="kpi">
+              <span>Bestandswert</span><strong id="kpiValue">0,00 €</strong
+              ><small>auf Basis deiner Werte</small>
+            </article>
+            <article class="kpi accent">
+              <span>Umsatz</span><strong id="kpiRevenue">0,00 €</strong
+              ><small id="kpiSales">0 Verkäufe</small>
+            </article>
+            <article class="kpi">
+              <span>Ergebnis</span><strong id="kpiProfit">0,00 €</strong
+              ><small>nach Kosten</small>
+            </article>
+          </div>
+          <div class="two-col">
+            <article class="panel">
+              <div class="panel-head">
+                <h3>Letzte Vorgänge</h3>
+                <button class="link-button" data-go="transactions">
+                  Alle anzeigen
+                </button>
+              </div>
+              <div id="recentActivity" class="activity-list"></div>
+            </article>
+            <article class="panel">
+              <h3>Schnellstart</h3>
+              <div class="action-grid">
+                <button data-action="purchase">Einkauf erfassen</button
+                ><button data-action="sale">Verkauf erfassen</button
+                ><button data-action="expense">Kosten erfassen</button
+                ><button data-go="inventory">Bestand öffnen</button>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section id="inventory" class="screen">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">WARENBESTAND</p>
+              <h2>Meine Karten</h2>
+            </div>
+            <div class="head-actions">
+              <button
+                id="inventorySaleSelectBtn"
+                class="secondary"
+                type="button"
+              >
+                Aus Bestand verkaufen</button
+              ><button
+                id="refreshMarketPricesBtn"
+                class="secondary"
+                type="button"
+              >
+                Marktpreise aktualisieren</button
+              ><button id="cardmarketImportOpen" class="secondary">
+                Cardmarket-Datei</button
+              ><button id="bulkOpenBtn" class="primary">
+                Viele Karten erfassen</button
+              ><button class="secondary" data-action="card">Einzelkarte</button>
+            </div>
+          </div>
+          <div
+            id="marketPriceStatus"
+            class="status market-price-status"
+            aria-live="polite"
+          ></div>
+          <div class="toolbar">
+            <input
+              id="inventorySearch"
+              type="search"
+              placeholder="Name, Set, Nummer oder Lagerort"
+            /><select id="inventoryGame">
+              <option value="">Alle Spiele</option>
+              <option>Pokémon</option>
+              <option>One Piece</option>
+              <option>Magic</option>
+            </select>
+          </div>
+          <div id="inventorySaleBar" class="inventory-sale-bar" hidden>
+            <strong id="inventorySaleCount">0 Karten ausgewählt</strong>
+            <div>
+              <button id="inventorySaleCancel" class="secondary" type="button">
+                Abbrechen</button
+              ><button
+                id="inventorySaleContinue"
+                class="primary"
+                type="button"
+                disabled
+              >
+                Auswahl verkaufen
+              </button>
+            </div>
+          </div>
+          <div id="inventoryList" class="card-list"></div>
+        </section>
+        <section id="transactions" class="screen">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">EIN- UND VERKÄUFE</p>
+              <h2>Vorgänge</h2>
+            </div>
+            <button class="primary" data-action="sale">Verkauf erfassen</button>
+          </div>
+          <div class="segmented">
+            <button class="active" data-kind-filter="">Alle</button
+            ><button data-kind-filter="purchase">Einkäufe</button
+            ><button data-kind-filter="sale">Verkäufe</button
+            ><button data-kind-filter="expense">Kosten</button>
+          </div>
+          <div id="transactionList" class="transaction-list"></div>
+        </section>
+        <section id="reports" class="screen">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">AUSWERTUNG</p>
+              <h2>Finanzen</h2>
+            </div>
+          </div>
+          <div class="report-card">
+            <label
+              >Zeitraum<select id="reportPeriod">
+                <option value="all">Gesamter Zeitraum</option>
+                <option value="year">Dieses Jahr</option>
+                <option value="month">Dieser Monat</option>
+              </select></label
+            >
+            <div id="reportSummary" class="report-summary"></div>
+            <p id="marketValueNote" class="market-value-note"></p>
+          </div>
+          <article class="panel">
+            <h3>Monatsübersicht</h3>
+            <div id="monthlyReport" class="monthly-report"></div>
+          </article>
+        </section>
+        <section id="data" class="screen">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">DATEN & SICHERUNG</p>
+              <h2>Export und Konto</h2>
+            </div>
+          </div>
+          <article class="panel stack test-panel">
+            <h3>Testmodus</h3>
+            <p class="muted">
+              Testdaten werden getrennt von den späteren echten Beständen und
+              Vorgängen gespeichert.
+            </p>
+            <label class="toggle-row"
+              ><span
+                >Testmodus verwenden<small
+                  >Beim Umschalten lädt die Seite einmal neu.</small
+                ></span
+              ><input id="testModeToggle" type="checkbox" /></label
+            ><button id="resetTestDataBtn" class="danger" type="button">
+              Alle Testdaten löschen
+            </button>
+            <div id="resetTestStatus" class="status"></div>
+          </article>
+          <article class="panel stack">
+            <h3>Daten herunterladen</h3>
+            <p class="muted">
+              Erstelle jederzeit eine vollständige Sicherung, die Excel öffnen
+              kann.
+            </p>
+            <button id="inventoryExportBtn" class="secondary">
+              Bestand als CSV</button
+            ><button id="transactionsExportBtn" class="secondary">
+              Vorgänge als CSV</button
+            ><button id="fullExportBtn" class="secondary">
+              Komplettsicherung als JSON
+            </button>
+          </article>
+          <article class="panel stack">
+            <h3>Cardmarket</h3>
+            <p class="muted">
+              Der Export bereitet deine Bestandsdaten für die weitere
+              Bearbeitung vor. Vor dem Upload bitte immer prüfen.
+            </p>
+            <button id="cardmarketExportBtn" class="secondary">
+              Cardmarket-Vorlage herunterladen
+            </button>
+          </article>
+          <article class="panel stack">
+            <h3>Konto</h3>
+            <div id="accountEmail" class="account-email"></div>
+            <div class="app-version">Schinkenwurst Kartenlager · Version 0.11.0</div>
+            <button id="logoutBtn" class="danger">Abmelden</button>
+          </article>
+        </section>
+      </main>
+      <nav class="bottom-nav" aria-label="Hauptnavigation">
+        <button class="active" data-screen="dashboard">
+          <span>⌂</span>Übersicht</button
+        ><button data-screen="inventory"><span>▣</span>Bestand</button
+        ><button data-screen="transactions"><span>⇄</span>Vorgänge</button
+        ><button data-screen="reports"><span>⌁</span>Finanzen</button
+        ><button data-screen="data"><span>•••</span>Daten</button>
+      </nav>
+    </div>
+    <dialog id="entryDialog">
+      <form id="entryForm">
+        <div class="dialog-head">
+          <div>
+            <p id="dialogEyebrow" class="eyebrow">NEUER EINTRAG</p>
+            <h2 id="dialogTitle">Karte hinzufügen</h2>
+          </div>
+          <button id="dialogClose" class="icon-button" type="button">×</button>
+        </div>
+        <input id="entryId" type="hidden" /><input
+          id="entryType"
+          type="hidden"
+        />
+        <div id="cardFields">
+          <div class="field-grid">
+            <label
+              >Spiel<select id="cardGame">
+                <option>Pokémon</option>
+                <option>One Piece</option>
+                <option>Magic</option>
+              </select></label
+            ><label
+              >Sprache<select id="cardLanguage">
+                <option value="de">Deutsch</option>
+                <option value="en">Englisch</option>
+                <option value="ja">Japanisch</option>
+                <option value="fr">Französisch</option>
+                <option value="it">Italienisch</option>
+                <option value="es">Spanisch</option>
+              </select></label
+            >
+          </div>
+          <label
+            >Kartenname<input id="cardName" required placeholder="z. B. Glurak"
+          /></label>
+          <div class="field-grid">
+            <label>Set<input id="cardSet" placeholder="z. B. 151" /></label
+            ><label
+              >Kartennummer<input id="cardNumber" placeholder="z. B. 006/165"
+            /></label>
+          </div>
+          <div class="field-grid">
+            <label
+              >Zustand<select id="cardCondition">
+                <option>NM</option>
+                <option>MT</option>
+                <option>EX</option>
+                <option>GD</option>
+                <option>LP</option>
+                <option>PL</option>
+                <option>PO</option>
+              </select></label
+            ><label
+              >Variante<select id="cardVariant">
+                <option>Normal</option>
+                <option>Holo</option>
+                <option>Reverse Holo</option>
+                <option>First Edition</option>
+              </select></label
+            >
+          </div>
+          <div class="field-grid">
+            <label
+              >Anzahl<input
+                id="cardQuantity"
+                type="number"
+                min="1"
+                value="1" /></label
+            ><label
+              >Lagerort<input id="cardLocation" placeholder="Kiste A / Fach 3"
+            /></label>
+          </div>
+          <div class="field-grid">
+            <label
+              >Einkauf je Karte €<input
+                id="cardPurchasePrice"
+                type="number"
+                min="0"
+                step="0.01" /></label
+            ><label
+              >Marktwert je Karte €<input
+                id="cardMarketValue"
+                type="number"
+                min="0"
+                step="0.01"
+            /></label>
+          </div>
+          <label>Notizen<textarea id="cardNotes" rows="2"></textarea></label>
+        </div>
+        <div id="transactionFields" hidden>
+          <label
+            >Bezeichnung<input
+              id="txDescription"
+              placeholder="z. B. Verkauf Glurak"
+              required /></label
+          ><label
+            >Karte (optional)<select id="txInventoryId">
+              <option value="">Keine Bestandskarte</option>
+            </select></label
+          >
+          <div class="field-grid">
+            <label>Datum<input id="txDate" type="date" required /></label
+            ><label
+              >Anzahl<input id="txQuantity" type="number" min="1" value="1"
+            /></label>
+          </div>
+          <div class="field-grid">
+            <label id="amountLabel"
+              >Betrag €<input
+                id="txAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                required /></label
+            ><label
+              >Gebühren/Versand €<input
+                id="txFees"
+                type="number"
+                min="0"
+                step="0.01"
+                value="0"
+            /></label>
+          </div>
+          <label
+            >Plattform<select id="txPlatform">
+              <option>Cardmarket</option>
+              <option>Privat</option>
+              <option>eBay</option>
+              <option>Messe/Börse</option>
+              <option>Sonstiges</option>
+            </select></label
+          ><label>Notizen<textarea id="txNotes" rows="2"></textarea></label>
+        </div>
+        <div id="formStatus" class="status" role="status"></div>
+        <button id="entrySubmit" class="primary" type="submit">
+          Speichern
+        </button>
+      </form>
+    </dialog>
+    <dialog id="bulkDialog" class="wide-dialog">
+      <form id="bulkForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">SCHNELLERFASSUNG</p>
+            <h2>Komplette Erweiterung erfassen</h2>
+          </div>
+          <button id="bulkCloseBtn" class="icon-button" type="button">×</button>
+        </div>
+        <div class="bulk-setup">
+          <label
+            >Spiel<select id="bulkGame">
+              <option>Pokémon</option>
+              <option disabled>One Piece – folgt</option>
+              <option disabled>Magic – folgt</option>
+            </select></label
+          ><label
+            >Sprache<select id="bulkLanguage">
+              <option value="de">Deutsch</option>
+              <option value="en">Englisch</option>
+              <option value="fr">Französisch</option>
+              <option value="it">Italienisch</option>
+            </select></label
+          ><label
+            >Erweiterung<select id="bulkSet">
+              <option value="">Erweiterungen werden geladen …</option>
+            </select></label
+          ><label
+            >Gemeinsamer Lagerort<input
+              id="bulkLocation"
+              placeholder="z. B. Kiste 4"
+          /></label>
+        </div>
+        <div class="bulk-defaults">
+          <label
+            >Standard-Zustand<select id="bulkCondition">
+              <option>NM</option>
+              <option>MT</option>
+              <option>EX</option>
+              <option>GD</option>
+              <option>LP</option>
+              <option>PL</option>
+              <option>PO</option>
+            </select></label
+          ><label
+            >Einkauf je Karte €<input
+              id="bulkPurchaseDefault"
+              type="number"
+              min="0"
+              step="0.01" /></label
+          ><label
+            >Verkauf je Karte €<input
+              id="bulkSellDefault"
+              type="number"
+              min="0"
+              step="0.01" /></label
+          ><button id="applyBulkDefaults" class="secondary" type="button">
+            Auf ausgefüllte Zeilen anwenden
+          </button>
+        </div>
+        <div class="bulk-search">
+          <input
+            id="bulkSearch"
+            type="search"
+            placeholder="Kartenliste filtern"
+          /><span id="bulkSelectedCount">0 Karten ausgewählt</span>
+        </div>
+        <div id="bulkStatus" class="status"></div>
+        <div id="bulkCardList" class="bulk-table"></div>
+        <button id="bulkSaveBtn" class="primary" type="submit">
+          Ausgewählte Karten übernehmen
+        </button>
+      </form>
+    </dialog>
+    <dialog id="cardmarketImportDialog" class="wide-dialog">
+      <form id="cardmarketImportForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">CARDMARKET-EINKAUF</p>
+            <h2>Versanddatei importieren</h2>
+          </div>
+          <button id="cardmarketImportClose" class="icon-button" type="button">
+            ×
+          </button>
+        </div>
+        <div id="importDrop" class="import-drop">
+          <strong>Cardmarket-CSV auswählen</strong
+          ><span>ArticlesFromShipment…csv</span
+          ><input id="cardmarketFile" type="file" accept=".csv,text/csv" />
+        </div>
+        <div class="field-grid">
+          <label
+            >Gemeinsamer Lagerort<input
+              id="importLocation"
+              placeholder="z. B. Neu eingetroffen" /></label
+          ><label>Kaufdatum<input id="importDate" type="date" /></label>
+        </div>
+        <div id="importStatus" class="status"></div>
+        <div id="importPreview" class="bulk-table"></div>
+        <button id="importSaveBtn" class="primary" type="submit" disabled>
+          Import bestätigen
+        </button>
+      </form>
+    </dialog>
+    <dialog id="correctionDialog">
+      <form id="correctionForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">BESTANDSKORREKTUR</p>
+            <h2 id="correctionTitle">Fehlbuchung korrigieren</h2>
+          </div>
+          <button id="correctionClose" class="icon-button" type="button">
+            ×
+          </button>
+        </div>
+        <p class="muted">
+          Diese Korrektur wird im Verlauf dokumentiert, zählt aber nicht als
+          Verkauf.
+        </p>
+        <label
+          >Auszubuchende Anzahl<input
+            id="correctionQuantity"
+            type="number"
+            min="1"
+            value="1"
+            required /></label
+        ><label
+          >Grund<select id="correctionReason">
+            <option>Fehlbuchung</option>
+            <option>Doppelt erfasst</option>
+            <option>Bestandszählung</option>
+            <option>Beschädigt oder verloren</option>
+            <option>Sonstige Korrektur</option>
+          </select></label
+        ><label
+          >Referenz (optional)<input
+            id="correctionReference"
+            placeholder="z. B. interne Notiznummer" /></label
+        ><label>Notiz<textarea id="correctionNotes" rows="2"></textarea></label>
+        <div id="correctionStatus" class="status"></div>
+        <button class="danger" type="submit">Bestand korrigieren</button>
+      </form>
+    </dialog>
+    <dialog id="multiSaleDialog" class="wide-dialog">
+      <form id="multiSaleForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">MEHRKARTEN-VERKAUF</p>
+            <h2>Verkauf erfassen</h2>
+          </div>
+          <button id="multiSaleClose" class="icon-button" type="button">
+            ×
+          </button>
+        </div>
+        <div class="bulk-setup sale-setup">
+          <label>Datum<input id="multiSaleDate" type="date" required /></label
+          ><label
+            >Plattform<select id="multiSalePlatform">
+              <option>Cardmarket</option>
+              <option>Privat</option>
+              <option>eBay</option>
+              <option>Messe/Börse</option>
+              <option>Sonstiges</option>
+            </select></label
+          ><label
+            >Bestell-/Versandnummer<input
+              id="multiSaleReference"
+              placeholder="z. B. 1292284685" /></label
+          ><label
+            >Plattformgebühr €<input
+              id="multiSaleFees"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0"
+          /></label>
+        </div>
+        <div class="sale-costs">
+          <label
+            >Versand vom Käufer erhalten €<input
+              id="multiSaleShippingCharged"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0" /></label
+          ><label
+            >Tatsächliche Versandkosten €<input
+              id="multiSaleShippingCost"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0"
+          /></label>
+          <div class="shipping-suggestion">
+            <span>Versandvorschlag</span
+            ><strong id="shippingSuggestion"
+              >Noch keine Karten ausgewählt</strong
+            ><small>Bitte mit der Cardmarket-Bestellung abgleichen.</small>
+          </div>
+          <label class="toggle-row"
+            ><span
+              >Gebühr automatisch vorschlagen<small
+                >Cardmarket: derzeit als 5%-Vorschlag</small
+              ></span
+            ><input id="autoFee" type="checkbox" checked
+          /></label>
+        </div>
+        <div class="bulk-search">
+          <input
+            id="multiSaleSearch"
+            type="search"
+            placeholder="Bestand durchsuchen"
+          /><strong id="multiSaleTotal">0,00 €</strong>
+        </div>
+        <div id="multiSaleStatus" class="status"></div>
+        <div id="multiSaleList" class="bulk-table"></div>
+        <label
+          >Gemeinsame Notiz<textarea
+            id="multiSaleNotes"
+            rows="2"
+          ></textarea></label
+        ><button id="multiSaleSubmit" class="primary" type="submit">
+          Verkauf buchen
+        </button>
+      </form>
+    </dialog>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

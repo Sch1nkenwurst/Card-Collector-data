@@ -144,4 +144,27 @@ Beim ersten Übertragen der Version `0.10.0` wurden große Dateien wegen einer A
 - direkte Veröffentlichung jeder Zwischenänderung nach `main`
 - einfache Löschung von Buchungen ohne Gegenbuchungs- oder Stornologik
 
+## 13. Kartenbilder im Bestand
+
+Am 8. August 2026 wurde die zuvor verlorengegangene Kartenbildanzeige wieder ergänzt. Neue Karten aus der Set-Schnellerfassung und dem Cardmarket-Import speichern die TCGdex-Karten-ID und eine TCGdex-Bildadresse. Bestehende Testkarten wurden ergänzt; Live-Bestand und Live-Vorgänge blieben unverändert bei null. Die Anzeige wurde auf Desktop und bei 390 px Breite geprüft.
+
+## 14. Verkaufsauswahl und Marktpreise
+
+Am 8. August 2026 wurde eine Mehrfachauswahl direkt im Bestand ergänzt. Die gewählten Karten werden in den Mehrkartenverkauf übernommen; der vollständige Verkauf wird mit `record_multi_sale` atomar gebucht. Die Verkaufsliste ist ohne Suchbegriff scrollbar, berücksichtigt kleine Tippfehler und begrenzt unzulässige Mengen. TCGdex liefert den Cardmarket-Trendpreis, der mit Zeitstand gespeichert und als unverbindlicher Marktpreis sowie als hypothetischer Bestandswert angezeigt wird. Fünf aktive Testpositionen wurden aktualisiert; Live-Bestand und Live-Vorgänge blieben bei null.
+
+## 15. Technische Modernisierung auf Version 0.11.0
+
+Am 10. August 2026 wurde die statische Laufzeit auf einen reproduzierbaren
+Vite-Build mit fest versionierter Supabase-Bibliothek umgestellt. Geheimnisse
+und Konfigurationen liegen nicht mehr in eingecheckten JavaScript-Dateien.
+Automatische Tests prüfen Suche und Finanzauswertung. Cloudflare liefert eine
+Content-Security-Policy und weitere Sicherheitsheader aus.
+
+Supabase erhielt versionierte Migrationen, ein Bestandsbewegungsbuch und ein
+Audit-Protokoll. Einzelbuchungen, vollständige Cardmarket-Importe und
+Bestandskorrekturen werden nun atomar ausgeführt. Direkte Löschungen sind nur
+noch für eigene Testdaten erlaubt; zentrale Set-Zuordnungen sind für den
+Browser schreibgeschützt. Vor und nach der Migration blieben Live-Bestand und
+Live-Vorgänge bei null.
+
 
